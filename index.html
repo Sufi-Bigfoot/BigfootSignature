@@ -65,9 +65,9 @@
       <input id="phone2" type="tel" placeholder="+65 9123 4567"></div>
     <div class="field"><label for="size">Image width</label>
       <select id="size">
-        <option value="2038" selected>Full size &ndash; 2038 px</option>
+        <option value="2038">Full size &ndash; 2038 px</option>
         <option value="1000">Large &ndash; 1000 px</option>
-        <option value="700">Email &ndash; 700 px</option>
+        <option value="700" selected>Email &ndash; 700 px</option>
       </select></div>
     <div class="row">
       <button id="download" type="button" disabled>Download PNG</button>
@@ -226,15 +226,26 @@
   document.getElementById('copy-disclaimer').addEventListener('click', function(){
     var text = document.getElementById('disclaimer').textContent.replace(/\s+/g, ' ').trim();
     var out = document.getElementById('disclaimer-status');
+    // Pasted into Outlook/Gmail as Times New Roman, size 8 (8pt is Outlook's "8").
+    var esc = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    var html = '<span style="font-family:\'Times New Roman\',Times,serif;font-size:8pt">' + esc + '</span>';
+    var done = 'Disclaimer copied (Times New Roman, size 8).';
     function fallback(){
-      var t = document.createElement('textarea');
-      t.value = text; document.body.appendChild(t); t.select();
+      function onCopy(e){
+        e.clipboardData.setData('text/html', html);
+        e.clipboardData.setData('text/plain', text);
+        e.preventDefault();
+      }
+      document.addEventListener('copy', onCopy);
       var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
-      t.remove();
-      out.textContent = ok ? 'Disclaimer copied.' : 'Copy was blocked. Select the text above and copy it manually.';
+      document.removeEventListener('copy', onCopy);
+      out.textContent = ok ? done : 'Copy was blocked. Select the text above and copy it manually.';
     }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function(){ out.textContent = 'Disclaimer copied.'; }, fallback);
+    if (navigator.clipboard && window.ClipboardItem) {
+      navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([html], {type: 'text/html'}),
+        'text/plain': new Blob([text], {type: 'text/plain'})
+      })]).then(function(){ out.textContent = done; }, fallback);
     } else { fallback(); }
   });
 
