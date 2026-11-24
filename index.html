@@ -62,7 +62,7 @@
       <input id="phone2" type="tel" placeholder="+65 9123 4567"></div>
     <div class="field"><label for="size">Image width</label>
       <select id="size">
-        <option value="2000" selected>Full size &ndash; 2000 px</option>
+        <option value="2038" selected>Full size &ndash; 2038 px</option>
         <option value="1000">Large &ndash; 1000 px</option>
         <option value="700">Email &ndash; 700 px</option>
       </select></div>
@@ -78,7 +78,7 @@
       <strong>Segoe UI isn't installed on this device</strong>, so a similar font is used.
       For an exact match, make your signature on a Windows PC.
     </div>
-    <canvas id="sig" width="2000" height="758" aria-label="Signature preview"></canvas>
+    <canvas id="sig" width="2038" height="772" aria-label="Signature preview"></canvas>
     <p class="note">Faded text is example text and is replaced as you type.</p>
     <ol>
       <li><strong>Outlook:</strong> File &rsaquo; Options &rsaquo; Mail &rsaquo; Signatures &rsaquo; New, then paste (Ctrl+V) or use the picture button to insert the PNG.</li>
@@ -92,21 +92,23 @@
   'use strict';
   var FONT = '"Segoe UI", "Selawik", "Helvetica Neue", Arial, sans-serif';
   var NAVY = '#061e4e', RED = '#dd0008';
-  var MAX_RIGHT = 490; // keep text clear of the vertical divider in the background
+  var W = 2038, H = 772;  // banner size in pixels (same as the Photoshop file)
+  var MAX_RIGHT = 500;      // keep text clear of the vertical divider in the background
 
   // ===== TEXT POSITIONS — edit these to move text =====
-  // Measured in pixels on the 2000 x 758 banner (top-left corner is 0,0).
+  // Measured in pixels on the 2038 x 772 banner (top-left corner is 0,0),
+  // the same pixels as the Photoshop file.
   //   x    = where the first letter's visible edge starts. Bigger = further right.
   //   y    = the vertical middle of a capital letter or digit. Bigger = further down.
   //   size = font size in px.
-  // Guides in the banner: red line under the title runs x 100-287 at y 152-154;
-  // the three red icons span x 99-144 with centres at y 194, 243.5 and 292.5.
+  // Guides in the banner: red line under the title runs x 102-293 at y 155-157;
+  // the three red icons span x 101-147 with centres at y 197.5, 248 and 298.
   var FIELDS = [
-    {id:'name',   x:102.8, y:75.6,  size:51, color:NAVY, sample:'John Doe'},
-    {id:'title',  x:100,   y:127.5, size:32, color:RED,  sample:'Operations Executive'},
-    {id:'email',  x:172,   y:194,   size:26, color:NAVY, sample:'john.doe@bigfoot.com.sg'},
-    {id:'phone1', x:172,   y:243.5, size:26, color:NAVY, sample:'+65 6123 4567'},
-    {id:'phone2', x:172,   y:292.5, size:26, color:NAVY, sample:'+65 9123 4567'}
+    {id:'name',   x:100, y:75,    size:51, color:NAVY, sample:'John Doe'},
+    {id:'title',  x:102, y:129.5, size:32, color:RED,  sample:'Operations Executive'},
+    {id:'email',  x:172, y:197.5, size:26, color:NAVY, sample:'john.doe@bigfoot.com.sg'},
+    {id:'phone1', x:172, y:248,   size:26, color:NAVY, sample:'+65 6123 4567'},
+    {id:'phone2', x:172, y:298,   size:26, color:NAVY, sample:'+65 9123 4567'}
   ];
   // =====================================================
 
@@ -124,9 +126,9 @@
   function draw(target, scale){
     var c = target.getContext('2d');
     c.setTransform(scale, 0, 0, scale, 0, 0);
-    c.clearRect(0, 0, 2000, 758);
+    c.clearRect(0, 0, W, H);
     c.imageSmoothingQuality = 'high';
-    c.drawImage(bg, 0, 0, 2000, 758);
+    c.drawImage(bg, 0, 0, W, H);
     c.textAlign = 'left';
     c.textBaseline = 'alphabetic';
     FIELDS.forEach(function(f){
@@ -158,10 +160,10 @@
 
   function exportCanvas(){
     var width = parseInt(document.getElementById('size').value, 10);
-    var scale = width / 2000;
+    var scale = width / W;
     // Draw at full size first, then step down for a sharper small image.
     var full = document.createElement('canvas');
-    full.width = 2000; full.height = 758;
+    full.width = W; full.height = H;
     draw(full, 1);
     var cur = full;
     while (cur.width / 2 > width) {
@@ -172,7 +174,7 @@
       cur = half;
     }
     var out = document.createElement('canvas');
-    out.width = width; out.height = Math.round(758 * scale);
+    out.width = width; out.height = Math.round(H * scale);
     var oc = out.getContext('2d'); oc.imageSmoothingQuality = 'high';
     oc.drawImage(cur, 0, 0, out.width, out.height);
     return out;
@@ -220,7 +222,7 @@
       render();
     });
   };
-  bg.src = 'background.webp';
+  bg.src = 'background.png';
 })();
 </script>
 </body>
