@@ -39,6 +39,9 @@
     font-size:13px;margin-bottom:12px}
   .status{font-size:13px;color:var(--navy);min-height:20px;margin-top:8px}
   ol{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--muted)}
+  .stack{display:grid;gap:24px;min-width:0}
+  .disclaimer{margin:0 0 12px;font-size:12px;line-height:1.6;color:var(--muted);
+    border-left:3px solid var(--line);padding-left:12px}
 </style>
 </head>
 <body>
@@ -73,7 +76,8 @@
     <div class="status" id="status" role="status" aria-live="polite"></div>
   </section>
 
-  <section class="preview-wrap" aria-labelledby="preview-h">
+  <div class="stack">
+  <section class="preview-wrap" aria-label="Signature preview">
     <div class="warn" id="fontwarn">
       <strong>Segoe UI isn't installed on this device</strong>, so a similar font is used.
       For an exact match, make your signature on a Windows PC.
@@ -85,6 +89,17 @@
       <li><strong>Gmail:</strong> Settings &rsaquo; See all settings &rsaquo; Signature &rsaquo; Create new, then use the image button to upload the PNG.</li>
     </ol>
   </section>
+
+  <section class="panel" aria-labelledby="disclaimer-h">
+    <h2 id="disclaimer-h">Email disclaimer</h2>
+    <p class="disclaimer" id="disclaimer">Important: This message is intended for the recipient(s) addressed above. It contains privileged and confidential information. If you are not the intended recipient, kindly notify the sender or Bigfoot Group at enquiries@bigfoot.com.sg immediately by replying to this message and then delete it from your system. You must not read, copy, use or disseminate this communication in any form. Note that only views, opinions or such other information contained in this message that relate to the official business of the Bigfoot Group is to be taken to have been sent by and on behalf of Bigfoot Group.</p>
+    <div class="row">
+      <button id="copy-disclaimer" type="button" class="ghost">Copy disclaimer</button>
+    </div>
+    <p class="note">Paste it into your signature editor on a new line below the signature image.</p>
+    <div class="status" id="disclaimer-status" role="status" aria-live="polite"></div>
+  </section>
+  </div>
 </main>
 
 <script>
@@ -207,6 +222,21 @@
   });
 
   FIELDS.forEach(function(f){ document.getElementById(f.id).addEventListener('input', render); });
+
+  document.getElementById('copy-disclaimer').addEventListener('click', function(){
+    var text = document.getElementById('disclaimer').textContent.replace(/\s+/g, ' ').trim();
+    var out = document.getElementById('disclaimer-status');
+    function fallback(){
+      var t = document.createElement('textarea');
+      t.value = text; document.body.appendChild(t); t.select();
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+      t.remove();
+      out.textContent = ok ? 'Disclaimer copied.' : 'Copy was blocked. Select the text above and copy it manually.';
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function(){ out.textContent = 'Disclaimer copied.'; }, fallback);
+    } else { fallback(); }
+  });
 
   function segoeAvailable(){
     var t = document.createElement('canvas').getContext('2d');
