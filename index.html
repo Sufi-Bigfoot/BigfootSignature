@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email Signature Maker | Bigfoot Group</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --navy:#061e4e; --red:#dd0008; --ink:#1c2433; --muted:#5b6475;
+    --line:#dfe3ea; --bg:#f6f5f2; --white:#fff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
+  header{background:var(--navy);color:#fff;padding:18px 24px;border-bottom:3px solid var(--red)}
+  header h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.2px}
+  header p{margin:2px 0 0;font-size:13px;opacity:.75}
+  main{max-width:1240px;margin:0 auto;padding:24px 16px 48px;
+    display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start}
+  @media (max-width:860px){main{grid-template-columns:1fr}}
+  .panel{background:var(--white);border:1px solid var(--line);padding:20px}
+  .panel h2{margin:0 0 14px;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin:0 0 4px}
+  input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:2px;
+    font:inherit;color:var(--ink);background:#fff}
+  input:focus,select:focus{outline:2px solid var(--navy);outline-offset:-1px;border-color:var(--navy)}
+  .field{margin-bottom:14px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  button{font:inherit;font-weight:600;padding:10px 16px;border:1px solid var(--navy);
+    background:var(--navy);color:#fff;cursor:pointer;border-radius:2px}
+  button.ghost{background:#fff;color:var(--navy)}
+  button:hover:not(:disabled){filter:brightness(1.15)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .preview-wrap{background:var(--white);border:1px solid var(--line);padding:16px}
+  canvas{display:block;width:100%;height:auto;border:1px solid var(--line)}
+  .note{font-size:13px;color:var(--muted);margin:10px 0 0}
+  .warn{display:none;background:#fff4f4;border-left:3px solid var(--red);padding:8px 12px;
+    font-size:13px;margin-bottom:12px}
+  .status{font-size:13px;color:var(--navy);min-height:20px;margin-top:8px}
+  ol{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Email Signature Maker</h1>
+  <p>Bigfoot Group &middot; fill in your details, then download or copy the image.</p>
+</header>
+
+<main>
+  <section class="panel" aria-labelledby="details-h">
+    <h2 id="details-h">Your details</h2>
+    <div class="field"><label for="name">Full name</label>
+      <input id="name" autocomplete="name" placeholder="Yahiya Khan"></div>
+    <div class="field"><label for="title">Job title</label>
+      <input id="title" autocomplete="organization-title" placeholder="Executive MD / Chairman"></div>
+    <div class="field"><label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" placeholder="name@bigfoot.com.sg"></div>
+    <div class="field"><label for="phone1">Office phone</label>
+      <input id="phone1" type="tel" placeholder="+65 6350 8199"></div>
+    <div class="field"><label for="phone2">Mobile phone</label>
+      <input id="phone2" type="tel" placeholder="+65 9780 1124"></div>
+    <div class="field"><label for="size">Image width</label>
+      <select id="size">
+        <option value="2000">Full size &ndash; 2000 px</option>
+        <option value="1000">Large &ndash; 1000 px</option>
+        <option value="700" selected>Email &ndash; 700 px</option>
+      </select></div>
+    <div class="row">
+      <button id="download" type="button">Download PNG</button>
+      <button id="copy" type="button" class="ghost">Copy image</button>
+    </div>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="preview-wrap" aria-labelledby="preview-h">
+    <div class="warn" id="fontwarn">
+      <strong>Segoe UI isn't installed on this device</strong>, so a similar font is used.
+      For an exact match, make your signature on a Windows PC.
+    </div>
+    <canvas id="sig" width="2000" height="758" aria-label="Signature preview"></canvas>
+    <p class="note">Faded text is example text and is replaced as you type.</p>
+    <ol>
+      <li><strong>Outlook:</strong> File &rsaquo; Options &rsaquo; Mail &rsaquo; Signatures &rsaquo; New, then paste (Ctrl+V) or use the picture button to insert the PNG.</li>
+      <li><strong>Gmail:</strong> Settings &rsaquo; See all settings &rsaquo; Signature &rsaquo; Create new, then use the image button to upload the PNG.</li>
+    </ol>
+  </section>
+</main>
+
+<script>
+(function(){
+  'use strict';
+  var FONT = '"Segoe UI", "Selawik", "Helvetica Neue", Arial, sans-serif';
+  var NAVY = '#061e4e', RED = '#dd0008';
+  var MAX_RIGHT = 490; // keep text clear of the vertical divider in the background
+
+  // Positions from the Photoshop file. x/y are the centre of each text layer's
+  // bounds as laid out with the sample text; the sample is used once to work
+  // out a fixed left edge and baseline so new text stays left-aligned.
+  var FIELDS = [
+    {id:'name',   cx:246.44, cy:81.58,  size:51, color:NAVY, sample:'Yahiya Khan'},
+    {id:'title',  cx:292.03, cy:135.57, size:32, color:RED,  sample:'Executive MD / Chairman'},
+    {id:'email',  cx:304.42, cy:201.83, size:26, color:NAVY, sample:'yaya@bigfoot.com.sg'},
+    {id:'phone1', cx:262.55, cy:255.83, size:26, color:NAVY, sample:'+65 6350 8199'},
+    {id:'phone2', cx:259.55, cy:303.83, size:26, color:NAVY, sample:'+65 9780 1124'}
+  ];
+
+  var canvas = document.getElementById('sig');
+  var ctx = canvas.getContext('2d');
+  var bg = new Image();
+  var statusEl = document.getElementById('status');
+
+  function font(size){ return '700 ' + size + 'px ' + FONT; }
+
+  function layout(){
+    FIELDS.forEach(function(f){
+      ctx.font = font(f.size);
+      var m = ctx.measureText(f.sample);
+      var w = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+      var h = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+      f.left = f.cx - w / 2 + m.actualBoundingBoxLeft;
+      f.baseline = f.cy - h / 2 + m.actualBoundingBoxAscent;
+      f.input = document.getElementById(f.id);
+      f.input.placeholder = f.sample;
+    });
+  }
+
+  function draw(target, scale){
+    var c = target.getContext('2d');
+    c.setTransform(scale, 0, 0, scale, 0, 0);
+    c.clearRect(0, 0, 2000, 758);
+    c.imageSmoothingQuality = 'high';
+    c.drawImage(bg, 0, 0, 2000, 758);
+    c.textAlign = 'left';
+    c.textBaseline = 'alphabetic';
+    FIELDS.forEach(function(f){
+      var value = f.input.value.trim();
+      var text = value || (target === canvas ? f.sample : '');
+      if (!text) return;
+      var size = f.size;
+      c.font = font(size);
+      var maxW = MAX_RIGHT - f.left;
+      while (c.measureText(text).width > maxW && size > 10) { size -= 1; c.font = font(size); }
+      c.fillStyle = f.color;
+      c.globalAlpha = value ? 1 : 0.3;
+      c.fillText(text, f.left, f.baseline);
+      c.globalAlpha = 1;
+    });
+  }
+
+  function render(){ draw(canvas, 1); updateButtons(); }
+
+  function updateButtons(){
+    var ready = !!document.getElementById('name').value.trim();
+    document.getElementById('download').disabled = !ready;
+    document.getElementById('copy').disabled = !ready || !(window.ClipboardItem && navigator.clipboard);
+  }
+
+  function exportCanvas(){
+    var width = parseInt(document.getElementById('size').value, 10);
+    var scale = width / 2000;
+    // Draw at full size first, then step down for a sharper small image.
+    var full = document.createElement('canvas');
+    full.width = 2000; full.height = 758;
+    draw(full, 1);
+    var cur = full;
+    while (cur.width / 2 > width) {
+      var half = document.createElement('canvas');
+      half.width = Math.round(cur.width / 2); half.height = Math.round(cur.height / 2);
+      var hc = half.getContext('2d'); hc.imageSmoothingQuality = 'high';
+      hc.drawImage(cur, 0, 0, half.width, half.height);
+      cur = half;
+    }
+    var out = document.createElement('canvas');
+    out.width = width; out.height = Math.round(758 * scale);
+    var oc = out.getContext('2d'); oc.imageSmoothingQuality = 'high';
+    oc.drawImage(cur, 0, 0, out.width, out.height);
+    return out;
+  }
+
+  function fileName(){
+    var n = document.getElementById('name').value.trim().toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return 'bigfoot-signature-' + (n || 'blank') + '.png';
+  }
+
+  document.getElementById('download').addEventListener('click', function(){
+    exportCanvas().toBlob(function(blob){
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fileName();
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+      statusEl.textContent = 'Downloaded ' + a.download;
+    }, 'image/png');
+  });
+
+  document.getElementById('copy').addEventListener('click', function(){
+    var blobPromise = new Promise(function(res){ exportCanvas().toBlob(res, 'image/png'); });
+    navigator.clipboard.write([new ClipboardItem({'image/png': blobPromise})])
+      .then(function(){ statusEl.textContent = 'Image copied. Paste it into your signature editor.'; })
+      .catch(function(){ statusEl.textContent = 'Copy was blocked by the browser. Use Download PNG instead.'; });
+  });
+
+  FIELDS.forEach(function(f){ document.getElementById(f.id).addEventListener('input', render); });
+
+  function segoeAvailable(){
+    var t = document.createElement('canvas').getContext('2d');
+    var s = 'Wwmli1@ Bigfoot';
+    t.font = '700 40px monospace'; var a = t.measureText(s).width;
+    t.font = '700 40px "Segoe UI", monospace'; var b = t.measureText(s).width;
+    return a !== b;
+  }
+
+  bg.onload = function(){
+    var fontsReady = document.fonts && document.fonts.load ? document.fonts.load(font(51)).catch(function(){}) : Promise.resolve();
+    fontsReady.then(function(){
+      if (!segoeAvailable()) document.getElementById('fontwarn').style.display = 'block';
+      layout();
+      render();
+    });
+  };
+  bg.src = 'background.webp';
+})();
+</script>
+</body>
+</html>
