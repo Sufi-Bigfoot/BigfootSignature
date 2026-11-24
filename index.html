@@ -94,15 +94,21 @@
   var NAVY = '#061e4e', RED = '#dd0008';
   var MAX_RIGHT = 490; // keep text clear of the vertical divider in the background
 
-  // Left edge and text baseline of each line, in banner pixels. Worked out
-  // from the Photoshop layer positions (Segoe UI Bold) so text stays left-aligned.
+  // ===== TEXT POSITIONS — edit these to move text =====
+  // Measured in pixels on the 2000 x 758 banner (top-left corner is 0,0).
+  //   x    = where the first letter's visible edge starts. Bigger = further right.
+  //   y    = the vertical middle of a capital letter or digit. Bigger = further down.
+  //   size = font size in px.
+  // Guides in the banner: red line under the title runs x 100-287 at y 152-154;
+  // the three red icons span x 99-144 with centres at y 194, 243.5 and 292.5.
   var FIELDS = [
-    {id:'name',   left:102.84, baseline:94.08,  size:51, color:NAVY, sample:'John Doe'},
-    {id:'title',  left:101.09, baseline:146.07, size:32, color:RED,  sample:'Operations Executive'},
-    {id:'email',  left:172.43, baseline:208.33, size:26, color:NAVY, sample:'john.doe@bigfoot.com.sg'},
-    {id:'phone1', left:170.39, baseline:264.83, size:26, color:NAVY, sample:'+65 6123 4567'},
-    {id:'phone2', left:167.39, baseline:312.83, size:26, color:NAVY, sample:'+65 9123 4567'}
+    {id:'name',   x:102.8, y:75.6,  size:51, color:NAVY, sample:'John Doe'},
+    {id:'title',  x:100,   y:127.5, size:32, color:RED,  sample:'Operations Executive'},
+    {id:'email',  x:172,   y:194,   size:26, color:NAVY, sample:'john.doe@bigfoot.com.sg'},
+    {id:'phone1', x:172,   y:243.5, size:26, color:NAVY, sample:'+65 6123 4567'},
+    {id:'phone2', x:172,   y:292.5, size:26, color:NAVY, sample:'+65 9123 4567'}
   ];
+  // =====================================================
 
   var canvas = document.getElementById('sig');
   var ctx = canvas.getContext('2d');
@@ -129,11 +135,15 @@
       if (!text) return;
       var size = f.size;
       c.font = font(size);
-      var maxW = MAX_RIGHT - f.left;
+      var maxW = MAX_RIGHT - f.x;
       while (c.measureText(text).width > maxW && size > 10) { size -= 1; c.font = font(size); }
+      // Line up the visible edge of the first letter (not the font's side gap),
+      // and centre capitals/digits on y.
+      var m = c.measureText(text);
+      var capHeight = c.measureText('H').actualBoundingBoxAscent;
       c.fillStyle = f.color;
       c.globalAlpha = value ? 1 : 0.3;
-      c.fillText(text, f.left, f.baseline);
+      c.fillText(text, f.x + m.actualBoundingBoxLeft, f.y + capHeight / 2);
       c.globalAlpha = 1;
     });
   }
