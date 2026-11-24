@@ -51,15 +51,15 @@
   <section class="panel" aria-labelledby="details-h">
     <h2 id="details-h">Your details</h2>
     <div class="field"><label for="name">Full name</label>
-      <input id="name" autocomplete="name" placeholder="Yahiya Khan"></div>
+      <input id="name" autocomplete="name" placeholder="John Doe"></div>
     <div class="field"><label for="title">Job title</label>
-      <input id="title" autocomplete="organization-title" placeholder="Executive MD / Chairman"></div>
+      <input id="title" autocomplete="organization-title" placeholder="Operations Executive"></div>
     <div class="field"><label for="email">Email</label>
-      <input id="email" type="email" autocomplete="email" placeholder="name@bigfoot.com.sg"></div>
+      <input id="email" type="email" autocomplete="email" placeholder="john.doe@bigfoot.com.sg"></div>
     <div class="field"><label for="phone1">Office phone</label>
-      <input id="phone1" type="tel" placeholder="+65 6350 8199"></div>
+      <input id="phone1" type="tel" placeholder="+65 6123 4567"></div>
     <div class="field"><label for="phone2">Mobile phone</label>
-      <input id="phone2" type="tel" placeholder="+65 9780 1124"></div>
+      <input id="phone2" type="tel" placeholder="+65 9123 4567"></div>
     <div class="field"><label for="size">Image width</label>
       <select id="size">
         <option value="2000">Full size &ndash; 2000 px</option>
@@ -94,15 +94,14 @@
   var NAVY = '#061e4e', RED = '#dd0008';
   var MAX_RIGHT = 490; // keep text clear of the vertical divider in the background
 
-  // Positions from the Photoshop file. x/y are the centre of each text layer's
-  // bounds as laid out with the sample text; the sample is used once to work
-  // out a fixed left edge and baseline so new text stays left-aligned.
+  // Left edge and text baseline of each line, in banner pixels. Worked out
+  // from the Photoshop layer positions (Segoe UI Bold) so text stays left-aligned.
   var FIELDS = [
-    {id:'name',   cx:246.44, cy:81.58,  size:51, color:NAVY, sample:'Yahiya Khan'},
-    {id:'title',  cx:292.03, cy:135.57, size:32, color:RED,  sample:'Executive MD / Chairman'},
-    {id:'email',  cx:304.42, cy:201.83, size:26, color:NAVY, sample:'yaya@bigfoot.com.sg'},
-    {id:'phone1', cx:262.55, cy:255.83, size:26, color:NAVY, sample:'+65 6350 8199'},
-    {id:'phone2', cx:259.55, cy:303.83, size:26, color:NAVY, sample:'+65 9780 1124'}
+    {id:'name',   left:102.84, baseline:94.08,  size:51, color:NAVY, sample:'John Doe'},
+    {id:'title',  left:101.09, baseline:146.07, size:32, color:RED,  sample:'Operations Executive'},
+    {id:'email',  left:172.43, baseline:208.33, size:26, color:NAVY, sample:'john.doe@bigfoot.com.sg'},
+    {id:'phone1', left:170.39, baseline:264.83, size:26, color:NAVY, sample:'+65 6123 4567'},
+    {id:'phone2', left:167.39, baseline:312.83, size:26, color:NAVY, sample:'+65 9123 4567'}
   ];
 
   var canvas = document.getElementById('sig');
@@ -113,16 +112,7 @@
   function font(size){ return '700 ' + size + 'px ' + FONT; }
 
   function layout(){
-    FIELDS.forEach(function(f){
-      ctx.font = font(f.size);
-      var m = ctx.measureText(f.sample);
-      var w = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
-      var h = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
-      f.left = f.cx - w / 2 + m.actualBoundingBoxLeft;
-      f.baseline = f.cy - h / 2 + m.actualBoundingBoxAscent;
-      f.input = document.getElementById(f.id);
-      f.input.placeholder = f.sample;
-    });
+    FIELDS.forEach(function(f){ f.input = document.getElementById(f.id); });
   }
 
   function draw(target, scale){
