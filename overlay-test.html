@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overlay Test | Bigfoot Signature</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{--navy:#061e4e;--red:#dd0008;--ink:#1c2433;--muted:#5b6475;--line:#dfe3ea;--bg:#f6f5f2}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,Arial,sans-serif}
+  header{background:var(--navy);color:#fff;padding:18px 24px;border-bottom:3px solid var(--red)}
+  header h1{margin:0;font-size:20px}
+  header p{margin:2px 0 0;font-size:13px;opacity:.75}
+  main{max-width:900px;margin:0 auto;padding:24px 16px 48px;display:grid;gap:24px}
+  section{background:#fff;border:1px solid var(--line);padding:20px}
+  h2{margin:0 0 4px;font-size:16px;color:var(--navy)}
+  p{margin:0 0 12px;font-size:14px;color:var(--muted)}
+  .sig{overflow-x:auto;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:12px}
+  button{font:inherit;font-weight:600;padding:10px 16px;border:1px solid var(--navy);background:var(--navy);color:#fff;cursor:pointer;border-radius:2px}
+  .status{font-size:13px;color:var(--navy);min-height:20px;margin-top:8px}
+  ol{margin:0;padding-left:18px;font-size:14px;color:var(--muted)}
+  li{margin-bottom:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Overlay test</h1>
+  <p>Does text on top of a background image survive Gmail and Outlook? Test both versions.</p>
+</header>
+<main>
+  <section>
+    <h2>How to test</h2>
+    <ol>
+      <li>Click <strong>Copy A</strong>, paste it into your signature editor (Gmail: Settings &rsaquo; See all settings &rsaquo; Signature), save, and send yourself an email.</li>
+      <li>Do the same with <strong>Copy B</strong>.</li>
+      <li>For each one, check: is the left panel, the red/navy bar and the icon row still behind the text? Is anything doubled, cut off or white?</li>
+      <li>If you can, also try classic Outlook on a PC and Outlook on the web.</li>
+    </ol>
+  </section>
+  <section>
+    <h2>A &middot; Sharp backgrounds (double size, scaled down)</h2>
+    <p>Sharpest if it works. Fails if the app keeps the background but drops its size: the background then shows twice as big.</p>
+    <div class="sig" id="sig-a"></div>
+    <button type="button" data-copy="a">Copy A</button>
+    <div class="status" id="status-a" role="status" aria-live="polite"></div>
+  </section>
+  <section>
+    <h2>B &middot; Real-size backgrounds</h2>
+    <p>Works even if the app drops the size setting. The background is a little softer; the text is just as sharp.</p>
+    <div class="sig" id="sig-b"></div>
+    <button type="button" data-copy="b">Copy B</button>
+    <div class="status" id="status-b" role="status" aria-live="polite"></div>
+  </section>
+</main>
+<script>
+(function(){
+  'use strict';
+  var ASSETS = 'https://sufi-bigfoot.github.io/BigfootSignature/email/';
+  if (/[?&]local\b/.test(location.search)) ASSETS = new URL('email/', location.href).href;
+  var V = '?v=1';
+
+  var NAVY = '#061e4e', RED = '#dd0008', LABEL = '#001f57', WHITE = '#ffffff';
+  var FONT = "'Segoe UI',Arial,Helvetica,sans-serif";
+  var TABLE = 'border-collapse:collapse;border:none;mso-table-lspace:0pt;mso-table-rspace:0pt;';
+  var CELL = 'padding:0;margin:0;border:none;line-height:0;font-size:0;';
+
+  // Sample details for the test.
+  var D = {name:'John Doe', title:'Operations Executive', email:'john.doe@bigfoot.com.sg', phone1:'+65 6123 4567', phone2:'+65 9123 4567'};
+
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function txt(size, color, lh, extra){
+    return 'font-family:' + FONT + ';font-size:' + size + 'px;line-height:' + lh + 'px;font-weight:bold;color:' + color + ';white-space:nowrap;mso-line-height-rule:exactly;' + (extra || '');
+  }
+  function gap(h, cols){
+    return '<tr><td' + (cols ? ' colspan="' + cols + '"' : '') + ' height="' + h + '" style="height:' + h + 'px;line-height:' + h + 'px;font-size:1px;padding:0;">&nbsp;</td></tr>';
+  }
+  function img(file, w, h, alt){
+    return '<img src="' + ASSETS + file + V + '" width="' + w + '" height="' + h + '" alt="' + esc(alt) + '" style="display:block;border:0;outline:none;width:' + w + 'px;height:' + h + 'px;">';
+  }
+  function link(url, inner, color){
+    return '<a href="' + esc(url) + '" target="_blank" style="text-decoration:none;border:0;color:' + (color || 'inherit') + ';">' + inner + '</a>';
+  }
+  // A table cell with a background image behind it (attribute + CSS, for the widest support).
+  function bgCell(file, w, h, sharp, fallback, inner){
+    var url = ASSETS + file + V;
+    return '<td width="' + w + '" height="' + h + '" valign="top" background="' + url + '" bgcolor="' + fallback + '"' +
+      ' style="padding:0;width:' + w + 'px;height:' + h + 'px;background-color:' + fallback + ';background-image:url(\'' + url + '\');' +
+      'background-repeat:no-repeat;background-position:0 0;' + (sharp ? 'background-size:' + w + 'px ' + h + 'px;' : '') + '">' + inner + '</td>';
+  }
+
+  // Positions below come from Recreation.psd (2039 x 771), scaled to 700 px wide.
+  function details(){
+    var c = function(icon, t, href){ return '<tr><td height="17" valign="middle" style="height:17px;padding:0 0 0 59px;' + txt(9, NAVY, 17) + '">' + link(href, esc(t), NAVY) + '</td></tr>'; };
+    return '<table cellpadding="0" cellspacing="0" border="0" width="172" style="' + TABLE + 'width:172px;">' +
+      gap(17) +
+      '<tr><td height="18" valign="middle" style="height:18px;padding:0 0 0 34px;' + txt(17, NAVY, 18) + '">' + esc(D.name) + '</td></tr>' +
+      gap(3) +
+      '<tr><td height="13" valign="middle" style="height:13px;padding:0 0 0 35px;' + txt(11, RED, 13) + '">' + esc(D.title) + '</td></tr>' +
+      gap(9) +
+      c('e', D.email, 'mailto:' + D.email) + c('p', D.phone1, 'tel:+6561234567') + c('m', D.phone2, 'tel:+6591234567') +
+      gap(18) + '</table>';
+  }
+
+  function bar(){
+    function two(top, bottom){
+      return '<td valign="top" style="padding:6px 0 0 0;">' +
+        '<div style="' + txt(7, WHITE, 8) + '">' + top + '</div>' +
+        '<div style="' + txt(8, WHITE, 10) + '">' + bottom + '</div></td>';
+    }
+    var widths = [42, 155, 112, 136, 255];
+    var cells = '<td width="42" style="' + CELL + '">&nbsp;</td>' +
+      two('For Enquiries:', link('mailto:enquiries@bigfoot.com.sg', 'enquiries@bigfoot.com.sg', WHITE)).replace('<td ', '<td width="155" ') +
+      two('Hotline:', link('tel:+6596995999', '+65 9699 5999', WHITE)).replace('<td ', '<td width="112" ') +
+      '<td width="136" valign="middle" style="padding:0;' + txt(8, WHITE, 33) + '">' + link('https://bigfootgroups.com', 'www.bigfootgroups.com', WHITE) + '</td>' +
+      '<td width="255" valign="middle" style="padding:0;' + txt(7, WHITE, 33) + '">8 Joo Koon Road, Singapore 628972</td>';
+    return '<table cellpadding="0" cellspacing="0" border="0" width="700" style="' + TABLE + 'width:700px;height:33px;"><tr>' + cells + '</tr></table>';
+  }
+
+  function services(){
+    var labels = [['Cold Chain','Solutions'],['Logistics &amp;','Transportation'],['Warehousing &amp;','Distribution'],['Project &amp;','Heavy Haulage'],
+      ['Stevedoring, Shipping','and Freight Forwarding'],['Trading &amp;','Global Sourcing'],['Healthcare and','Ambulance Services'],['Vehicle Service,','Maintenance and Rental']];
+    var centres = [55, 132, 211, 288, 371, 454, 536, 627];
+    var edges = [0];
+    for (var i = 0; i < centres.length - 1; i++) edges.push(Math.round((centres[i] + centres[i + 1]) / 2));
+    edges.push(700);
+    var cells = '';
+    labels.forEach(function(l, i){
+      var L = edges[i], R = edges[i + 1], w = R - L, shift = 2 * centres[i] - L - R;
+      var pad = shift > 0 ? 'padding:17px 0 0 ' + shift + 'px;' : 'padding:17px ' + (-shift) + 'px 0 0;';
+      cells += '<td width="' + w + '" valign="top" align="center" style="' + pad + txt(7, LABEL, 8, 'text-align:center;') + '">' + l[0] + '<br>' + l[1] + '</td>';
+    });
+    return '<table cellpadding="0" cellspacing="0" border="0" width="700" style="' + TABLE + 'width:700px;height:35px;"><tr>' + cells + '</tr></table>';
+  }
+
+  function bottom(){
+    var s = [['whatsapp.png',66,'https://api.whatsapp.com/send/?phone=6592335247&text&type=phone_number&app_absent=0','WhatsApp'],
+      ['instagram.png',67,'https://www.instagram.com/bigfootgroups/','Instagram'],['facebook.png',67,'https://www.facebook.com/BigfootGroups/','Facebook'],
+      ['linkedin.png',66,'https://www.linkedin.com/company/big-foot-logistic?originalSubdomain=sg','LinkedIn'],['youtube.png',67,'https://www.youtube.com/watch?v=K-agmplo6Oo','YouTube']];
+    var cells = '<td width="367" style="' + CELL + '">' + img('scam.png', 367, 68, 'Scam awareness: call the 24/7 ScamShield Helpline 1799') + '</td>';
+    s.forEach(function(x){ cells += '<td width="' + x[1] + '" style="' + CELL + '">' + link(x[2], img(x[0], x[1], 68, 'Bigfoot Group on ' + x[3])) + '</td>'; });
+    return '<table cellpadding="0" cellspacing="0" border="0" width="700" style="' + TABLE + 'width:700px;"><tr>' + cells + '</tr></table>';
+  }
+
+  function signature(sharp){
+    var sfx = sharp ? '.png' : '-1x.png';
+    return '<table cellpadding="0" cellspacing="0" border="0" width="700" style="' + TABLE + 'width:700px;">' +
+      '<tr>' + bgCell('test/left' + sfx, 172, 129, sharp, WHITE, details()) +
+        '<td width="528" style="' + CELL + '">' + link('https://bigfootgroups.com', img('banner.png', 528, 129, 'Bigfoot Group, Supply Chain Enablers')) + '</td></tr>' +
+      '<tr><td colspan="2" style="' + CELL + '"><table cellpadding="0" cellspacing="0" border="0" width="700" style="' + TABLE + 'width:700px;"><tr>' +
+        bgCell('test/bar' + sfx, 700, 33, sharp, NAVY, bar()) + '</tr></table></td></tr>' +
+      '<tr><td colspan="2" style="' + CELL + '"><table cellpadding="0" cellspacing="0" border="0" width="700" style="' + TABLE + 'width:700px;"><tr>' +
+        bgCell('test/services' + sfx, 700, 35, sharp, WHITE, services()) + '</tr></table></td></tr>' +
+      '<tr><td colspan="2" style="' + CELL + '">' + bottom() + '</td></tr></table>';
+  }
+
+  function copyHtml(html, done, failed){
+    function fallback(){
+      function onCopy(e){ e.clipboardData.setData('text/html', html); e.clipboardData.setData('text/plain', 'Bigfoot Group'); e.preventDefault(); }
+      document.addEventListener('copy', onCopy);
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+      document.removeEventListener('copy', onCopy);
+      if (ok) done(); else failed();
+    }
+    if (navigator.clipboard && window.ClipboardItem) {
+      navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([html], {type: 'text/html'}),
+        'text/plain': new Blob(['Bigfoot Group'], {type: 'text/plain'})
+      })]).then(done, fallback);
+    } else { fallback(); }
+  }
+
+  var html = {a: signature(true), b: signature(false)};
+  document.getElementById('sig-a').innerHTML = html.a;
+  document.getElementById('sig-b').innerHTML = html.b;
+  document.querySelectorAll('[data-copy]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var k = btn.getAttribute('data-copy'), st = document.getElementById('status-' + k);
+      copyHtml(html[k], function(){ st.textContent = 'Copied ' + k.toUpperCase() + '. Paste it into your signature editor.'; },
+        function(){ st.textContent = 'Copy was blocked. Try Chrome or Edge.'; });
+    });
+  });
+})();
+</script>
+</body>
+</html>
