@@ -58,12 +58,14 @@
   body[data-active="true"] [data-tab~="true"],
   body[data-active="text"] [data-tab~="text"],
   body[data-active="overlay"] [data-tab~="overlay"],
-  body[data-active="compare"] [data-tab~="compare"]{display:block}
+  body[data-active="compare"] [data-tab~="compare"],
+  body[data-active="grid"] [data-tab~="grid"]{display:block}
   body[data-active="original"] .row[data-tab~="original"],
   body[data-active="true"] .row[data-tab~="true"],
   body[data-active="text"] .row[data-tab~="text"],
   body[data-active="overlay"] .row[data-tab~="overlay"],
-  body[data-active="compare"] .row[data-tab~="compare"]{display:flex}
+  body[data-active="compare"] .row[data-tab~="compare"],
+  body[data-active="grid"] .row[data-tab~="grid"]{display:flex}
   body[data-active="compare"] main{grid-template-columns:280px 1fr}
   .cmp-ctrl{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
   .cmp-ctrl .field{margin:0;min-width:150px}
@@ -83,6 +85,7 @@
     <button class="tab" role="tab" id="tab-true" data-go="true" aria-selected="false">True Size<small>700 / 800 / 1000 px images</small></button>
     <button class="tab" role="tab" id="tab-text" data-go="text" aria-selected="false">Text Details<small>Sharpest &middot; best in Gmail</small></button>
     <button class="tab" role="tab" id="tab-overlay" data-go="overlay" aria-selected="false">Overlay<small>Text on the banner &middot; testing</small></button>
+    <button class="tab" role="tab" id="tab-grid" data-go="grid" aria-selected="false">Grid<small>All text real &middot; works everywhere</small></button>
     <button class="tab" role="tab" id="tab-compare" data-go="compare" aria-selected="false">Compare<small>All versions side by side</small></button>
   </div>
 </header>
@@ -121,7 +124,7 @@
       </select></div>
 
     <div class="row">
-      <button id="copy" type="button" data-tab="original true text overlay" disabled>Copy signature</button>
+      <button id="copy" type="button" data-tab="original true text overlay grid" disabled>Copy signature</button>
       <button id="download" type="button" class="ghost" data-tab="original true" disabled>Download images</button>
     </div>
     <div class="status" id="status" role="status" aria-live="polite"></div>
@@ -132,7 +135,8 @@
     <p class="about" data-tab="original">Images are made at twice their size and shown at the width you pick, so they look sharp in <strong>Outlook</strong>. Gmail ignores the width and shows them twice as big: use True Size or Text Details for Gmail.</p>
     <p class="about" data-tab="true">Each image is exactly the width you pick, made from a banner exported at that size. Shows at the right size in <strong>every</strong> email app, including Gmail. Slightly softer on high-resolution screens.</p>
     <p class="about" data-tab="text">Your details are real text beside the banner, and the banner loads from the web at twice its size. Sharpest everywhere, right size in <strong>Gmail</strong>, and no attachments listed under your emails. Needs an internet connection.</p>
-    <p class="about" data-tab="overlay">All text is real text laid over the banner, like the image versions, so it is sharp and the banner keeps its full look. It uses background images, which some email apps drop (classic Outlook, possibly Gmail's signature editor). <strong>Test it before giving it to staff.</strong> If <em>Sharp</em> shows the background twice as big, use <em>Real size</em>.</p>
+    <p class="about" data-tab="grid">Every piece of text is real text, and every icon, logo and line is a normal image placed beside it, never behind it. Nothing relies on background images, so it looks the same in Outlook and Gmail. The contact bar uses flat red and navy. Needs an internet connection.</p>
+    <p class="about" data-tab="overlay">All text is real text laid over the banner, like the image versions, so it is sharp and the banner keeps its full look. It uses background images, which some email apps drop (classic Outlook, possibly Gmail's signature editor). <strong>Outlook removes these backgrounds when sending, so use Grid instead.</strong> If <em>Sharp</em> shows the background twice as big, use <em>Real size</em>.</p>
 
     <div class="warn" id="fontwarn">
       <strong>Segoe UI isn't installed on this device</strong>, so a similar font is used.
@@ -174,7 +178,7 @@
       </div>
       <div class="cmp-grid" id="compare"></div>
     </div>
-    <div data-tab="text overlay">
+    <div data-tab="text overlay grid">
       <div class="sig-box sample" id="preview"></div>
       <p class="note">Faded text is example text and is replaced as you type.</p>
     </div>
@@ -567,6 +571,109 @@
   }
   function overlaySharp(){ return document.getElementById('bg-overlay').value === 'sharp'; }
 
+  // ---------- Grid version ----------
+  // No text sits on an image: icons, logos and lines are images (email/grid/,
+  // made by make-grid-assets.ps1) placed beside solid-colour cells holding the
+  // real text. Sizes are as shown; the images are twice this.
+  var G_RED = '#dd0008', G_NAVY = '#002158', G_LABEL = '#001f57', G_DIV = '#8a8a8a';
+
+  function gImg(name, w, h, alt){ return hosted('grid/' + name + '.png', w, h, alt || ''); }
+  function gTable(w, inner, extra){
+    return '<table cellpadding="0" cellspacing="0" border="0" width="' + w + '" style="' + TABLE + 'width:' + w + 'px;table-layout:fixed;' + (extra || '') + '">' + inner + '</table>';
+  }
+  function gImgCell(name, w, h){ return '<td width="' + w + '" style="' + CELL + 'width:' + w + 'px;">' + gImg(name, w, h) + '</td>'; }
+  // A solid-colour cell holding text.
+  function gTextCell(w, h, bg, inner, style){
+    return '<td width="' + w + '" height="' + h + '" bgcolor="' + bg + '" style="padding:0;width:' + w + 'px;height:' + h + 'px;background-color:' + bg + ';' + (style || '') + '">' + inner + '</td>';
+  }
+  // Link whose colour survives Outlook and Gmail (set on the link and on the text inside).
+  function gLink(url, text, color){
+    return '<a href="' + esc(url) + '" target="_blank" style="color:' + color + ';text-decoration:none;"><span style="color:' + color + ';text-decoration:none;">' + text + '</span></a>';
+  }
+  // Text Gmail should not turn into a link by itself (addresses): break its pattern with zero-width joiners.
+  function noAutoLink(t){ return esc(t).replace(/ /g, '&#8203; '); }
+  function gRow(cells){ return '<tr>' + cells + '</tr>'; }
+
+  function gDetails(v){
+    function contact(t, href){
+      return '<tr><td width="115" height="17" valign="middle" bgcolor="#ffffff" style="padding:0 0 0 2px;width:113px;height:17px;background-color:#ffffff;' + oText(fit(t, 9, 110, 6.5), NAVY, 17) + '">' + (t ? gLink(href, esc(t), NAVY) : '&nbsp;') + '</td></tr>';
+    }
+    var contacts = gTable(115,
+      contact(v.email, 'mailto:' + v.email) +
+      contact(v.phone1, 'tel:' + v.phone1.replace(/[^\d+]/g, '')) +
+      contact(v.phone2, 'tel:' + v.phone2.replace(/[^\d+]/g, '')));
+    return gTable(172,
+      gRow('<td style="' + CELL + '">' + gImg('d-top', 172, 17) + '</td>') +
+      gRow('<td style="' + CELL + '">' + gTable(172, gRow(gImgCell('d-name', 34, 18) +
+        gTextCell(138, 18, '#ffffff', esc(v.name), oText(fit(v.name, 17, 134, 10), NAVY, 18)))) + '</td>') +
+      gRow('<td style="' + CELL + '">' + gImg('d-gap', 172, 3) + '</td>') +
+      gRow('<td style="' + CELL + '">' + gTable(172, gRow(gImgCell('d-title', 35, 13) +
+        gTextCell(137, 13, '#ffffff', esc(v.title), oText(fit(v.title, 11, 133, 7), RED, 13)))) + '</td>') +
+      gRow('<td style="' + CELL + '">' + gImg('d-line', 172, 9) + '</td>') +
+      gRow('<td style="' + CELL + '">' + gTable(172, gRow(gImgCell('d-icons', 57, 51) +
+        '<td width="115" valign="top" style="' + CELL + 'width:115px;">' + contacts + '</td>')) + '</td>') +
+      gRow('<td style="' + CELL + '">' + gImg('d-bottom', 172, 18) + '</td>'));
+  }
+
+  function gBar(){
+    function two(w, bg, top, bottomText, bottom){
+      return gTextCell(w, 33, bg,
+        '<div style="' + oText(fit(top, 8, w - 2, 6), WHITE, 9) + '">' + top + '</div>' +
+        '<div style="' + oText(fit(bottomText, 9, w - 2, 6.5), WHITE, 11) + '">' + bottom + '</div>', 'vertical-align:top;padding-top:5px;height:28px;');
+    }
+    var address = '8 Joo Koon Road, Singapore 628972';
+    return gTable(700, gRow(
+      gImgCell('b-mail', 42, 33) +
+      two(114, G_RED, 'For Enquiries:', 'enquiries@bigfoot.com.sg', gLink('mailto:enquiries@bigfoot.com.sg', 'enquiries@bigfoot.com.sg', WHITE)) +
+      gImgCell('b-phone', 41, 33) +
+      two(60, G_RED, 'Hotline:', '+65 9699 5999', gLink('tel:+6596995999', '+65&nbsp;9699&nbsp;5999', WHITE)) +
+      gImgCell('b-globe', 52, 33) +
+      gTextCell(91, 33, G_NAVY, gLink(WEBSITE, 'www.bigfootgroups.com', WHITE), 'vertical-align:middle;' + oText(fit('www.bigfootgroups.com', 8, 89, 6.5), WHITE, 33)) +
+      gImgCell('b-pin', 45, 33) +
+      gTextCell(107, 33, G_NAVY, '<span style="color:' + WHITE + ';">' + noAutoLink(address) + '</span>', 'vertical-align:middle;' + oText(fit(address, 7, 105, 6), WHITE, 33)) +
+      gImgCell('b-logos', 148, 33)));
+  }
+
+  function gServices(){
+    var labels = [['Cold Chain','Solutions'],['Logistics &amp;','Transportation'],['Warehousing &amp;','Distribution'],['Project &amp;','Heavy Haulage'],
+      ['Stevedoring, Shipping','and Freight Forwarding'],['Trading &amp;','Global Sourcing'],['Healthcare and','Ambulance Services'],['Vehicle Service,','Maintenance and Rental']];
+    var centres = [55, 132, 211, 288, 371, 454, 536, 627];   // from Recreation.psd
+    var dividers = [90, 171, 250, 325, 416, 491, 581];        // 1 px grey lines between labels
+    function blank(w){
+      return '<td width="' + w + '" height="18" bgcolor="#ffffff" style="' + CELL + 'width:' + w + 'px;height:18px;background-color:#ffffff;">&nbsp;</td>';
+    }
+    var cells = '', left = 0;
+    labels.forEach(function(l, i){
+      var right = i < dividers.length ? dividers[i] : 700;
+      var half = Math.min(centres[i] - left, right - centres[i]);
+      var a = centres[i] - half - left, b = right - (centres[i] + half);
+      if (a > 0) cells += blank(a);
+      cells += '<td width="' + (2 * half) + '" height="18" valign="top" align="center" bgcolor="#ffffff" style="padding:0;width:' + (2 * half) + 'px;height:18px;background-color:#ffffff;' + oText(7, G_LABEL, 8, 'text-align:center;padding-top:1px;') + '">' + l[0] + '<br>' + l[1] + '</td>';
+      if (b > 0) cells += blank(b);
+      if (i < dividers.length) {
+        cells += '<td width="1" style="' + CELL + 'width:1px;">' + gTable(1,
+          '<tr><td width="1" height="10" bgcolor="' + G_DIV + '" style="' + CELL + 'width:1px;height:10px;background-color:' + G_DIV + ';">&nbsp;</td></tr>' +
+          '<tr><td width="1" height="8" bgcolor="#ffffff" style="' + CELL + 'width:1px;height:8px;background-color:#ffffff;">&nbsp;</td></tr>') + '</td>';
+        left = right + 1;
+      }
+    });
+    return gTable(700, gRow('<td style="' + CELL + '">' + gImg('s-icons', 700, 17) + '</td>')) +
+      gTable(700, gRow(cells));
+  }
+
+  function gridSignature(v){
+    var cells = '<td width="' + T.SCAM_W + '" style="' + CELL + '">' +
+      hosted('scam.png', T.SCAM_W, T.SOCIAL_H, 'Scam awareness: call the 24/7 ScamShield Helpline 1799') + '</td>';
+    SOCIALS.forEach(function(s){
+      cells += '<td width="' + s.w + '" style="' + CELL + '">' + link(s.url, hosted(s.file, s.w, T.SOCIAL_H, 'Bigfoot Group on ' + s.name)) + '</td>';
+    });
+    function row(inner){ return '<tr><td colspan="2" style="' + CELL + '">' + inner + '</td></tr>'; }
+    return gTable(700,
+      '<tr><td class="details" width="172" valign="top" style="' + CELL + 'width:172px;">' + gDetails(v) + '</td>' +
+        '<td width="528" valign="top" style="' + CELL + '">' + link(WEBSITE, hosted('banner.png', 528, 129, 'Bigfoot Group, Supply Chain Enablers')) + '</td></tr>' +
+      row(gBar()) + row(gServices()) + row(gTable(700, gRow(cells))));
+  }
+
   // ---------- Compare ----------
   var REGIONS = {  // x, y, w, h in the 700 px signature
     all: [0, 0, 700, 265], details: [0, 0, 172, 129], bar: [0, 129, 700, 33],
@@ -582,6 +689,7 @@
       {title:'Original', note:'Double-size images at 700 px. This is how Outlook shows it; Gmail shows it at 1400 px.', html: imageSignature(pieces(true, 'original', 700))},
       {title:'True Size', note:'Images exactly 700 px, details drawn on the banner.', html: imageSignature(pieces(false, 'true', '700'))},
       {title:'Text Details', note:'Details as real text beside the banner; banner loaded from the web at double size.', html: textSignature(v)},
+      {title:'Grid', note:'All text real, icons and logos as images beside it. No background images.', html: gridSignature(v)},
       {title:'Overlay \u00b7 Sharp', note:'All text real, on double-size background images.', html: overlaySignature(v, true)},
       {title:'Overlay \u00b7 Real size', note:'All text real, on real-size background images.', html: overlaySignature(v, false)}
     ];
@@ -643,9 +751,10 @@
       cmpTimer = setTimeout(renderCompare, 150);
       return;
     }
-    if (active === 'text' || active === 'overlay') {
+    if (active === 'text' || active === 'overlay' || active === 'grid') {
       preview.classList.toggle('sample', !ready);
-      preview.innerHTML = active === 'text' ? textSignature(values(true)) : overlaySignature(values(true), overlaySharp());
+      preview.innerHTML = active === 'text' ? textSignature(values(true)) :
+        active === 'grid' ? gridSignature(values(true)) : overlaySignature(values(true), overlaySharp());
       var d = preview.querySelector('td.details > table');
       var limit = active === 'text' ? T.DETAILS_W - T.PAD_L : T.DETAILS_W;
       var sigTable = preview.querySelector('table');
@@ -706,7 +815,8 @@
 
   copyBtn.addEventListener('click', function(){
     var html = active === 'text' ? textSignature(values(false)) :
-      active === 'overlay' ? overlaySignature(values(false), overlaySharp()) : imageSignature(pieces(true));
+      active === 'overlay' ? overlaySignature(values(false), overlaySharp()) :
+      active === 'grid' ? gridSignature(values(false)) : imageSignature(pieces(true));
     copyHtml(html, plainText(),
       function(){ statusEl.textContent = 'Signature copied. Paste it into your signature editor.'; },
       function(){ statusEl.textContent = 'Copy was blocked by the browser. Try again in Chrome or Edge.'; });
@@ -762,7 +872,7 @@
 
   var saved = null;
   try { saved = localStorage.getItem('bf-sig-tab'); } catch (e) {}
-  show(['true', 'text', 'overlay', 'compare'].indexOf(saved) >= 0 ? saved : 'original');
+  show(['true', 'text', 'overlay', 'grid', 'compare'].indexOf(saved) >= 0 ? saved : 'original');
 
   Promise.all(Object.keys(BANNERS).map(function(k){
     return new Promise(function(res, rej){
