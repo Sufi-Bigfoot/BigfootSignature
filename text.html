@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email Signature Maker (Text) | Bigfoot Group</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --navy:#061e4e; --red:#dd0008; --ink:#1c2433; --muted:#5b6475;
+    --line:#dfe3ea; --bg:#f6f5f2; --white:#fff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
+  header{background:var(--navy);color:#fff;padding:18px 24px;border-bottom:3px solid var(--red)}
+  header h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.2px}
+  header p{margin:2px 0 0;font-size:13px;opacity:.75}
+  main{max-width:1240px;margin:0 auto;padding:24px 16px 48px;
+    display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start}
+  @media (max-width:860px){main{grid-template-columns:1fr}}
+  .panel{background:var(--white);border:1px solid var(--line);padding:20px}
+  .panel h2{margin:0 0 14px;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin:0 0 4px}
+  input{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:2px;
+    font:inherit;color:var(--ink);background:#fff}
+  input:focus{outline:2px solid var(--navy);outline-offset:-1px;border-color:var(--navy)}
+  .field{margin-bottom:14px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  button{font:inherit;font-weight:600;padding:10px 16px;border:1px solid var(--navy);
+    background:var(--navy);color:#fff;cursor:pointer;border-radius:2px}
+  button.ghost{background:#fff;color:var(--navy)}
+  button:hover:not(:disabled){filter:brightness(1.15)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .preview-wrap{background:var(--white);border:1px solid var(--line);padding:16px}
+  .sig-box{overflow-x:auto;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .sig-box.sample td.details{opacity:.45}
+  .note{font-size:13px;color:var(--muted);margin:10px 0 0}
+  .warn{display:none;background:#fff4f4;border-left:3px solid var(--red);padding:8px 12px;
+    font-size:13px;margin-bottom:12px}
+  .status{font-size:13px;color:var(--navy);min-height:20px;margin-top:8px}
+  ol{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--muted)}
+  .stack{display:grid;gap:24px;min-width:0}
+  .disclaimer{margin:0 0 12px;font-size:12px;line-height:1.6;color:var(--muted);
+    border-left:3px solid var(--line);padding-left:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Email Signature Maker &middot; Text</h1>
+  <p>Bigfoot Group &middot; your details are real text, so they stay sharp in every email app.</p>
+</header>
+
+<main>
+  <section class="panel" aria-labelledby="details-h">
+    <h2 id="details-h">Your details</h2>
+    <div class="field"><label for="name">Full name</label>
+      <input id="name" autocomplete="name" placeholder="John Doe"></div>
+    <div class="field"><label for="title">Job title</label>
+      <input id="title" autocomplete="organization-title" placeholder="Operations Executive"></div>
+    <div class="field"><label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" placeholder="john.doe@bigfoot.com.sg"></div>
+    <div class="field"><label for="phone1">Office phone</label>
+      <input id="phone1" type="tel" placeholder="+65 6123 4567"></div>
+    <div class="field"><label for="phone2">Mobile phone</label>
+      <input id="phone2" type="tel" placeholder="+65 9123 4567"></div>
+    <div class="row">
+      <button id="copy" type="button" disabled>Copy signature</button>
+    </div>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <div class="stack">
+  <section class="preview-wrap" aria-label="Signature preview">
+    <div class="warn" id="toolong">
+      <strong>Some of your details are too long to fit.</strong> The signature will be wider than 700 px.
+      Try a shorter job title, or leave out a phone number.
+    </div>
+    <div class="warn" id="noimages">
+      <strong>The banner images could not be loaded.</strong> Check your internet connection.
+      The signature loads them from the web, so recipients need to be online too.
+    </div>
+    <div class="sig-box sample" id="preview"></div>
+    <p class="note">Faded text is example text and is replaced as you type.</p>
+    <ol>
+      <li><strong>Copy signature</strong> copies the whole signature with its links built in.</li>
+      <li><strong>Gmail:</strong> Settings (gear) &rsaquo; See all settings &rsaquo; General &rsaquo; Signature. Create or pick a signature, delete what is in the box, paste (Ctrl+V), then <em>Save changes</em> at the bottom of the page.</li>
+      <li><strong>Outlook on the web:</strong> Settings &rsaquo; Accounts &rsaquo; Signatures. Delete any old signature, paste (Ctrl+V) and save.</li>
+      <li>Send yourself a test email and click the banner and each icon to check the links.</li>
+    </ol>
+  </section>
+
+  <section class="panel" aria-labelledby="disclaimer-h">
+    <h2 id="disclaimer-h">Email disclaimer</h2>
+    <p class="disclaimer" id="disclaimer">Important: This message is intended for the recipient(s) addressed above. It contains privileged and confidential information. If you are not the intended recipient, kindly notify the sender or Bigfoot Group at enquiries@bigfoot.com.sg immediately by replying to this message and then delete it from your system. You must not read, copy, use or disseminate this communication in any form. Note that only views, opinions or such other information contained in this message that relate to the official business of the Bigfoot Group is to be taken to have been sent by and on behalf of Bigfoot Group.</p>
+    <div class="row">
+      <button id="copy-disclaimer" type="button" class="ghost">Copy disclaimer</button>
+    </div>
+    <p class="note">Paste it into your signature editor on a new line below the signature.</p>
+    <div class="status" id="disclaimer-status" role="status" aria-live="polite"></div>
+  </section>
+  </div>
+</main>
+
+<script>
+(function(){
+  'use strict';
+
+  // ===== WHERE THE IMAGES LIVE =====
+  // The banner pieces are loaded from this web address (made by
+  // make-email-assets.ps1 and uploaded to GitHub Pages). They are twice the size
+  // they are shown at, so they stay sharp on high-resolution screens.
+  // For testing before upload, open this page from a local server with ?local.
+  var ASSETS = 'https://sufi-bigfoot.github.io/BigfootSignature/email/';
+  if (/[?&]local\b/.test(location.search)) ASSETS = new URL('email/', location.href).href;
+  var VERSION = '1';  // bump after re-uploading changed images, so mail apps fetch the new ones
+
+  // ===== LINKS =====
+  var WEBSITE = 'https://bigfootgroups.com';
+  var SOCIALS = [
+    {name:'WhatsApp',  file:'whatsapp.png',  w:66, url:'https://api.whatsapp.com/send/?phone=6592335247&text&type=phone_number&app_absent=0'},
+    {name:'Instagram', file:'instagram.png', w:67, url:'https://www.instagram.com/bigfootgroups/'},
+    {name:'Facebook',  file:'facebook.png',  w:67, url:'https://www.facebook.com/BigfootGroups/'},
+    {name:'LinkedIn',  file:'linkedin.png',  w:66, url:'https://www.linkedin.com/company/big-foot-logistic?originalSubdomain=sg'},
+    {name:'YouTube',   file:'youtube.png',   w:67, url:'https://www.youtube.com/watch?v=K-agmplo6Oo'}
+  ];
+
+  // ===== LAYOUT (pixels as shown in the email; images are twice this) =====
+  var SIG_W = 700;
+  var DETAILS_W = 172, BANNER_W = 528, TOP_H = 129;  // details column + banner beside it
+  var BAR_H = 68;                                     // contact bar + services row
+  var SCAM_W = 367, SOCIAL_H = 68;                    // bottom row
+  var PAD_L = 10;                                     // space left of the details
+  var DETAILS_TEXT_W = DETAILS_W - PAD_L;
+
+  var NAVY = '#061e4e', RED = '#dd0008';
+  var FONT = "'Segoe UI',Arial,Helvetica,sans-serif";
+
+  var FIELDS = [
+    {id:'name',   sample:'John Doe'},
+    {id:'title',  sample:'Operations Executive'},
+    {id:'email',  sample:'john.doe@bigfoot.com.sg'},
+    {id:'phone1', sample:'+65 6123 4567'},
+    {id:'phone2', sample:'+65 9123 4567'}
+  ];
+
+  var preview = document.getElementById('preview');
+  var statusEl = document.getElementById('status');
+  var copyBtn = document.getElementById('copy');
+
+  function esc(s){ return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function src(file){ return ASSETS + file + '?v=' + VERSION; }
+
+  var TABLE = 'border-collapse:collapse;border:none;mso-table-lspace:0pt;mso-table-rspace:0pt;';
+  var CELL = 'padding:0;margin:0;border:none;line-height:0;font-size:0;';
+
+  function img(file, w, h, alt){
+    return '<img src="' + src(file) + '" width="' + w + '" height="' + h + '" alt="' + esc(alt) + '"' +
+      ' style="display:block;border:0;outline:none;width:' + w + 'px;height:' + h + 'px;">';
+  }
+  function link(url, inner){
+    return '<a href="' + esc(url) + '" target="_blank" style="text-decoration:none;border:0;">' + inner + '</a>';
+  }
+  function textStyle(size, color, lh){
+    return 'font-family:' + FONT + ';font-size:' + size + 'px;line-height:' + lh + 'px;font-weight:bold;color:' + color + ';white-space:nowrap;mso-line-height-rule:exactly;';
+  }
+
+  // One contact line: red icon + text (an email or phone link, kept navy and not underlined).
+  function contactRow(icon, alt, text, href){
+    return '<tr>' +
+      '<td width="16" valign="middle" style="padding:2px 5px 2px 0;width:16px;">' + img(icon, 16, 16, alt) + '</td>' +
+      '<td valign="middle" style="padding:2px 0;' + textStyle(10, NAVY, 16) + '">' +
+        '<a href="' + esc(href) + '" style="color:' + NAVY + ';text-decoration:none;">' + esc(text) + '</a></td></tr>';
+  }
+
+  function values(sample){
+    var v = {};
+    FIELDS.forEach(function(f){
+      var t = document.getElementById(f.id).value.trim();
+      v[f.id] = t || (sample ? f.sample : '');
+    });
+    return v;
+  }
+
+  function details(v){
+    var rows = '';
+    if (v.name)  rows += '<tr><td colspan="2" style="padding:0;' + textStyle(17, NAVY, 21) + '">' + esc(v.name) + '</td></tr>';
+    if (v.title) rows += '<tr><td colspan="2" style="padding:0;' + textStyle(11, RED, 15) + '">' + esc(v.title) + '</td></tr>';
+    rows += '<tr><td colspan="2" style="padding:4px 0 6px 0;' + CELL + '">' +
+      '<table cellpadding="0" cellspacing="0" border="0" width="66" style="' + TABLE + 'width:66px;"><tr>' +
+      '<td height="2" bgcolor="' + RED + '" style="' + CELL + 'height:2px;background:' + RED + ';">&nbsp;</td></tr></table></td></tr>';
+    if (v.email)  rows += contactRow('icon-email.png', 'Email', v.email, 'mailto:' + v.email);
+    if (v.phone1) rows += contactRow('icon-phone.png', 'Office', v.phone1, 'tel:' + v.phone1.replace(/[^\d+]/g, ''));
+    if (v.phone2) rows += contactRow('icon-mobile.png', 'Mobile', v.phone2, 'tel:' + v.phone2.replace(/[^\d+]/g, ''));
+    return '<table cellpadding="0" cellspacing="0" border="0" style="' + TABLE + '">' + rows + '</table>';
+  }
+
+  function signature(v){
+    var cells = '<td width="' + SCAM_W + '" style="' + CELL + '">' +
+      img('scam.png', SCAM_W, SOCIAL_H, 'Scam awareness: call the 24/7 ScamShield Helpline 1799') + '</td>';
+    SOCIALS.forEach(function(s){
+      cells += '<td width="' + s.w + '" style="' + CELL + '">' + link(s.url, img(s.file, s.w, SOCIAL_H, 'Bigfoot Group on ' + s.name)) + '</td>';
+    });
+    return '<table cellpadding="0" cellspacing="0" border="0" width="' + SIG_W + '" style="' + TABLE + 'width:' + SIG_W + 'px;">' +
+      '<tr>' +
+        '<td class="details" width="' + DETAILS_W + '" height="' + TOP_H + '" valign="middle" style="padding:0 0 0 ' + PAD_L + 'px;width:' + DETAILS_TEXT_W + 'px;height:' + TOP_H + 'px;background:#ffffff;">' +
+          details(v) + '</td>' +
+        '<td width="' + BANNER_W + '" style="' + CELL + '">' +
+          link(WEBSITE, img('banner.png', BANNER_W, TOP_H, 'Bigfoot Group, Supply Chain Enablers')) + '</td>' +
+      '</tr>' +
+      '<tr><td colspan="2" style="' + CELL + '">' +
+        link(WEBSITE, img('bar.png', SIG_W, BAR_H, 'Enquiries enquiries@bigfoot.com.sg, hotline +65 9699 5999, bigfootgroups.com')) + '</td></tr>' +
+      '<tr><td colspan="2" style="' + CELL + '">' +
+        '<table cellpadding="0" cellspacing="0" border="0" width="' + SIG_W + '" style="' + TABLE + 'width:' + SIG_W + 'px;"><tr>' + cells + '</tr></table>' +
+      '</td></tr></table>';
+  }
+
+  function plainText(v){
+    return [v.name, v.title, v.email, v.phone1, v.phone2, 'Bigfoot Group', WEBSITE].filter(Boolean).join('\n');
+  }
+
+  function render(){
+    var hasName = !!document.getElementById('name').value.trim();
+    preview.classList.toggle('sample', !hasName);
+    preview.innerHTML = signature(values(true));
+    copyBtn.disabled = !hasName;
+    var d = preview.querySelector('td.details > table');
+    document.getElementById('toolong').style.display = d && d.offsetWidth > DETAILS_TEXT_W ? 'block' : 'none';
+    var imgs = preview.querySelectorAll('img');
+    imgs.forEach(function(im){
+      im.addEventListener('error', function(){ document.getElementById('noimages').style.display = 'block'; });
+    });
+  }
+
+  // Copy HTML (with a plain-text fallback) to the clipboard.
+  function copyHtml(html, text, done, failed){
+    function fallback(){
+      function onCopy(e){
+        e.clipboardData.setData('text/html', html);
+        e.clipboardData.setData('text/plain', text);
+        e.preventDefault();
+      }
+      document.addEventListener('copy', onCopy);
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+      document.removeEventListener('copy', onCopy);
+      if (ok) done(); else failed();
+    }
+    if (navigator.clipboard && window.ClipboardItem) {
+      navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([html], {type: 'text/html'}),
+        'text/plain': new Blob([text], {type: 'text/plain'})
+      })]).then(done, fallback);
+    } else { fallback(); }
+  }
+
+  copyBtn.addEventListener('click', function(){
+    var v = values(false);
+    copyHtml(signature(v), plainText(v),
+      function(){ statusEl.textContent = 'Signature copied. Paste it into your signature editor.'; },
+      function(){ statusEl.textContent = 'Copy was blocked by the browser. Try again in Chrome or Edge.'; });
+  });
+
+  FIELDS.forEach(function(f){ document.getElementById(f.id).addEventListener('input', render); });
+
+  document.getElementById('copy-disclaimer').addEventListener('click', function(){
+    var text = document.getElementById('disclaimer').textContent.replace(/\s+/g, ' ').trim();
+    var out = document.getElementById('disclaimer-status');
+    var html = '<span style="font-family:\'Times New Roman\',Times,serif;font-size:8pt">' + esc(text) + '</span>';
+    copyHtml(html, text,
+      function(){ out.textContent = 'Disclaimer copied (Times New Roman, size 8).'; },
+      function(){ out.textContent = 'Copy was blocked. Select the text above and copy it manually.'; });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
